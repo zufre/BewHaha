@@ -1,15 +1,18 @@
 import React, { Component } from "react";
 // prettier-ignore
-import { Container, Box, Heading, Image, Card, Text, SearchField } from "gestalt";
+import { Container, Box, Heading, Image, Card, Text, SearchField , Icon} from "gestalt";
 import { Link } from "react-router-dom";
 import Strapi from "strapi-sdk-javascript/build/main";
+import Loader from "./Loader";
 import "./App.css";
 const apiUrl = process.env.API_URL || "http://localhost:1337";
 const strapi = new Strapi(apiUrl);
 
 class App extends Component {
   state = {
-    brands: []
+    brands: [],
+    searchTerm: "",
+    loadingBrands: true
   };
 
   async componentDidMount() {
@@ -29,16 +32,27 @@ class App extends Component {
         }
       });
       console.log(response);
-      this.setState({ brands: response.data.brands });
+      this.setState({ brands: response.data.brands, loadingBrands: false });
     } catch (err) {
       console.log(err);
+      this.setState({ loadingBrands: false });
     }
   }
   handleChange = ({ value }) => {
     this.setState({ searchTerm: value });
   };
+
+  filteredBrands = ({ searchTerm, brands }) => {
+    return brands.filter(brand => {
+      return (
+        brand.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        brand.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+  };
+
   render() {
-    const { brands } = this.state;
+    const { searchTerm, loadingBrands } = this.state;
     return (
       <Container>
         {/* Brands Search Field */}
@@ -47,10 +61,19 @@ class App extends Component {
             id="searchField"
             accessibilityLabel="Brands Search Field"
             onChange={this.handleChange}
-            placeHolder
+            value={searchTerm}
+            placeHolder="Search Brands"
           />
-        </Box>
 
+          <Box margin={2}>
+            <Icon
+              icon="filter"
+              color={searchTerm ? "orange" : "gray"}
+              size={20}
+              accessibilityLabel="Filter"
+            />
+          </Box>
+        </Box>
         {/* Brands */}
         <Box display="flex" justifyContent="center" marginBottom={2}>
           {/*Brandsheader*/}
@@ -59,19 +82,16 @@ class App extends Component {
           </Heading>
         </Box>
         {/* Brands */}
-
         <Box
           dangerouslySetInlineStyle={{
-            __style: {
-              backgroundColor: "#d6c8ec"
-            }
+            __style: { color: "#d6c8ec" }
           }}
           shape="rounded"
           wrap
           display="flex"
           justifyContent="around"
         >
-          {brands.map(brand => (
+          {this.filteredBrands(this.state).map(brand => (
             <Box paddingY={4} margin={2} width={200} key={brand._id}>
               <Card
                 image={
@@ -85,24 +105,27 @@ class App extends Component {
                     />
                   </Box>
                 }
-              />
-              <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                direction="column"
               >
-                <Text bold size="xl">
-                  {brand.name}
-                </Text>
-                <Text>{brand.description}</Text>
-                <Text bold size="xl">
-                  <Link to={`/${brand._id}`}>See Brews</Link>
-                </Text>
-              </Box>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  direction="column"
+                >
+                  <Text bold size="xl">
+                    {brand.name}
+                  </Text>
+                  <Text>{brand.description}</Text>
+                  <Text bold size="xl">
+                    <Link to={`/${brand._id}`}>See Brews</Link>
+                  </Text>
+                </Box>
+              </Card>
             </Box>
           ))}
         </Box>
+        {/* <Spinner show={loadingBrands} accessibilityLabel="Loading Spinner" /> */}
+        <Loader show={loadingBrands} />
       </Container>
     );
   }
