@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 // prettier-ignore
-import { Container, Box, Heading, Image, Card, Text, SearchField , Icon} from "gestalt";
+import { Container, Box, Heading, Card, Image, Text, SearchField, Icon } from "gestalt";
 import { Link } from "react-router-dom";
-import Strapi from "strapi-sdk-javascript/build/main";
 import Loader from "./Loader";
 import "./App.css";
+import Strapi from "strapi-sdk-javascript/build/main";
 const apiUrl = process.env.API_URL || "http://localhost:1337";
 const strapi = new Strapi(apiUrl);
 
@@ -20,24 +20,25 @@ class App extends Component {
       const response = await strapi.request("POST", "/graphql", {
         data: {
           query: `query {
-          brands {
-            _id
-            name
-            description
-            image {
-              url
+            brands {
+              _id
+              name
+              description
+              image {
+                url
+              }
             }
-          }
-        }`
+          }`
         }
       });
-      console.log(response);
+      // console.log(response);
       this.setState({ brands: response.data.brands, loadingBrands: false });
     } catch (err) {
-      console.log(err);
+      console.error(err);
       this.setState({ loadingBrands: false });
     }
   }
+
   handleChange = ({ value }) => {
     this.setState({ searchTerm: value });
   };
@@ -53,6 +54,7 @@ class App extends Component {
 
   render() {
     const { searchTerm, loadingBrands } = this.state;
+
     return (
       <Container>
         {/* Brands Search Field */}
@@ -62,10 +64,9 @@ class App extends Component {
             accessibilityLabel="Brands Search Field"
             onChange={this.handleChange}
             value={searchTerm}
-            placeHolder="Search Brands"
+            placeholder="Search Brands"
           />
-
-          <Box margin={2}>
+          <Box margin={3}>
             <Icon
               icon="filter"
               color={searchTerm ? "orange" : "gray"}
@@ -74,9 +75,10 @@ class App extends Component {
             />
           </Box>
         </Box>
-        {/* Brands */}
+
+        {/* Brands Section */}
         <Box display="flex" justifyContent="center" marginBottom={2}>
-          {/*Brandsheader*/}
+          {/* Brands Header */}
           <Heading color="midnight" size="md">
             Brew Brands
           </Heading>
@@ -84,7 +86,9 @@ class App extends Component {
         {/* Brands */}
         <Box
           dangerouslySetInlineStyle={{
-            __style: { color: "#d6c8ec" }
+            __style: {
+              backgroundColor: "#d6c8ec"
+            }
           }}
           shape="rounded"
           wrap
@@ -98,10 +102,10 @@ class App extends Component {
                   <Box height={200} width={200}>
                     <Image
                       fit="cover"
-                      src={`${apiUrl}${brand.image.url}`}
+                      alt="Brand"
                       naturalHeight={1}
                       naturalWidth={1}
-                      alt="Brand"
+                      src={`${apiUrl}${brand.image.url}`}
                     />
                   </Box>
                 }
